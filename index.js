@@ -16,8 +16,8 @@ export default class Sketch{
 
 
         //Camera
-        this.camera = new THREE.PerspectiveCamera( 70, this.width/this.height, 0.01, 2000 );
-        this.camera.position.z = 5;
+        this.camera = new THREE.OrthographicCamera( this.width / - 2, this.width / 2, this.height / 2, this.height / - 2, 1, 1000 );
+        this.camera.position.z = 2;
 
         this.camera.fov = 2*Math.atan( (this.height/2)/600 )* (180/Math.PI);
 
@@ -30,7 +30,7 @@ export default class Sketch{
         this.renderer.setClearColor(0x1, 1); 
         this.container.appendChild( this.renderer.domElement );
 
-        this.controls = new OrbitControls( this.camera, this.renderer.domElement );
+        // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
 
         this.resize()
         this.setupResize();
@@ -69,28 +69,41 @@ export default class Sketch{
     addBuffers(){
 
         this.bufferScene = new THREE.Scene();
-        this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter});
-        this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter});
+        this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter});
+        this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter});
 
         this.materialA = new THREE.ShaderMaterial( {
             uniforms: {
-                bufferTex: { type: "t", value: this.textureA.texture },
+                // bufferTex: { type: "t", value: this.textureA.texture },
+                bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
-                time: {type:"f",value: 0}
-                }, 
+                time: {type:"f",value: 0},
+                diffusionA: {type:"f",value: 1},
+                diffusionB: {type:"f",value: .5},
+                f: {type:"f",value: 0.055},
+                k: {type:"f",value: 0.062},
+                delta: {type:"f",value: 1},
+                test: {type:"f",value: new THREE.Vector3(0,0,0)}
+            }, 
             fragmentShader: fshader
         });
-
+        // uniform float diffusionA;
+        // uniform float diffusionB;
+        // uniform float f;
+        // uniform float k;
+        // uniform float delta;
         this.materialB = new THREE.ShaderMaterial( {
             uniforms: {
                 bufferTex: { type: "t", value: this.textureB.texture },
+                // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
-                time: {type:"f",value:0}
+                time: {type:"f",value:0},
+                test2: {type:"f",value: new THREE.Vector3(0,1,0)}
             }, 
             fragmentShader: gshader
         } );
 
-        this.geometry = new THREE.PlaneGeometry(5, 5, 10, 10 );
+        this.geometry = new THREE.PlaneGeometry(this.width, this.height, 10, 10 );
         
         this.bufferObject = new THREE.Mesh(this.geometry, this.materialA );
         this.bufferScene.add(this.bufferObject);
@@ -103,15 +116,23 @@ export default class Sketch{
 
         requestAnimationFrame(this.render.bind(this));
         // this.renderer.render(this.scene, this.camera);
+        // this.materialA.uniforms.bufferTex.value = this.textureB.texture;
+        // let temp 
 
-        this.renderer.setRenderTarget(this.textureB);
+
+        // this.materialB.uniforms.test2.value = new THREE.Vector3(1,0,0);
+        // this.time += 0.0005;
+        // this.materialA.uniforms.time.value = this.time;
+        // this.materialB.uniforms.time.value = this.time;
+        
+        
+        this.renderer.setRenderTarget(this.textureA);
         this.renderer.clear();
         this.renderer.render(this.bufferScene, this.camera);
-
-        this.time += 0.0005;
-        this.materialA.uniforms.time.value = this.time;
-        this.materialB.uniforms.time.value = this.time;
-
+        
+        this.materialA.uniforms.bufferTex.value = this.textureB.texture;
+        this.materialB.uniforms.bufferTex.value = this.textureA.texture;
+        
         this.renderer.setRenderTarget(null);
         this.renderer.render( this.scene, this.camera );
     }

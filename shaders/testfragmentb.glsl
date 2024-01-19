@@ -1,9 +1,10 @@
 uniform sampler2D bufferTex; 
 uniform float time;
 uniform vec2 res;
+uniform vec3 test2;
 void main() {
     vec2 vUv = gl_FragCoord.xy / res;
-    vec4 col = texture(bufferTex,vUv);
-    float y = round((sin(vUv.x*50. + 25.)*cos(vUv.y*50.+25.) + 1.)*(0.5 + sin(time*15. + 50.)*0.01));
-    gl_FragColor = vec4(col.x,y,fract(col.x*10.+y), 1.11);
+    vec4 col = texture(bufferTex,vUv) + vec4(0.2);
+    gl_FragColor = vec4(col.r,col.g,col.b , 1.);
+    // gl_FragColor = vec4(test2.r,test2.g,test2.b, 1.);
 }
