@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import fragment from './shaders/fragment.glsl'
 import vertex from './shaders/vertex.glsl'
+import fshader from './shaders/testfragmenta.glsl'
+import gshader from './shaders/testfragmentb.glsl'
+
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export default class Sketch{
@@ -31,6 +34,8 @@ export default class Sketch{
 
         this.resize()
         this.setupResize();
+
+        this.addBuffers();
         this.addObjects();
         this.render();
     }
@@ -46,26 +51,69 @@ export default class Sketch{
     }
 
     addObjects(){
-        this.geometry = new THREE.PlaneGeometry(5, 5, 10, 10 );
+        
         // this.geometry = new THREE.SphereGeometry(5,10,10);
-        this.material = new THREE.ShaderMaterial({
-            uniforms:{
-                time: {value:0},
-            },
-            side: THREE.DoubleSide,
-            fragmentShader: fragment,
-            vertexShader: vertex,
-            // wireframe: true
+        // this.material = new THREE.ShaderMaterial({
+        //     uniforms:{
+        //         time: {value:0},
+        //     },
+        //     side: THREE.DoubleSide,
+        //     fragmentShader: fragment,
+        //     vertexShader: vertex,
+        //     // wireframe: true
+        // });
+        // this.mesh = new THREE.Mesh( this.geometry, this.material);
+        // this.scene.add( this.mesh );
+    }
+
+    addBuffers(){
+
+        this.bufferScene = new THREE.Scene();
+        this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter});
+        this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter});
+
+        this.materialA = new THREE.ShaderMaterial( {
+            uniforms: {
+                bufferTex: { type: "t", value: this.textureA.texture },
+                res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
+                time: {type:"f",value: 0}
+                }, 
+            fragmentShader: fshader
         });
-        this.mesh = new THREE.Mesh( this.geometry, this.material);
+
+        this.materialB = new THREE.ShaderMaterial( {
+            uniforms: {
+                bufferTex: { type: "t", value: this.textureB.texture },
+                res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
+                time: {type:"f",value:0}
+            }, 
+            fragmentShader: gshader
+        } );
+
+        this.geometry = new THREE.PlaneGeometry(5, 5, 10, 10 );
+        
+        this.bufferObject = new THREE.Mesh(this.geometry, this.materialA );
+        this.bufferScene.add(this.bufferObject);
+
+        this.mesh = new THREE.Mesh( this.geometry, this.materialB);
         this.scene.add( this.mesh );
     }
 
     render(){
-        this.time += 0.05;
-        this.material.uniforms.time.value = this.time;
+
         requestAnimationFrame(this.render.bind(this));
-        this.renderer.render(this.scene, this.camera);
+        // this.renderer.render(this.scene, this.camera);
+
+        this.renderer.setRenderTarget(this.textureB);
+        this.renderer.clear();
+        this.renderer.render(this.bufferScene, this.camera);
+
+        this.time += 0.0005;
+        this.materialA.uniforms.time.value = this.time;
+        this.materialB.uniforms.time.value = this.time;
+
+        this.renderer.setRenderTarget(null);
+        this.renderer.render( this.scene, this.camera );
     }
 }
 
