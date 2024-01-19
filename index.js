@@ -72,10 +72,11 @@ export default class Sketch{
         this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter});
         this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter});
 
+        // this.textureA.texture = new THREE.TextureLoader().load("initState.jpg");
         this.materialA = new THREE.ShaderMaterial( {
             uniforms: {
-                // bufferTex: { type: "t", value: this.textureA.texture },
-                bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
+                bufferTex: { type: "t", value: this.textureA.texture },
+                // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value: 0},
                 diffusionA: {type:"f",value: 1},
@@ -121,20 +122,29 @@ export default class Sketch{
 
 
         // this.materialB.uniforms.test2.value = new THREE.Vector3(1,0,0);
-        // this.time += 0.0005;
-        // this.materialA.uniforms.time.value = this.time;
-        // this.materialB.uniforms.time.value = this.time;
-        
-        
-        this.renderer.setRenderTarget(this.textureA);
+        this.time += 0.0005;
+        this.materialA.uniforms.time.value = this.time;
+        this.materialB.uniforms.time.value = this.time;
+        //Draw buffer scene with materialA and grayscott shader to texture B
+        this.renderer.setRenderTarget(this.textureB);
         this.renderer.clear();
         this.renderer.render(this.bufferScene, this.camera);
+
         
-        this.materialA.uniforms.bufferTex.value = this.textureB.texture;
-        this.materialB.uniforms.bufferTex.value = this.textureA.texture;
+        let t = this.textureA;
+        this.textureA = this.textureB;
+        this.textureB = t;
+        this.materialA.uniforms.bufferTex.value = this.textureA.texture;
+        this.materialB.uniforms.bufferTex.value = this.textureB.texture;
         
+
+        //Draw to screen
         this.renderer.setRenderTarget(null);
+        this.renderer.clear();
         this.renderer.render( this.scene, this.camera );
+        
+
+
     }
 }
 

@@ -59,7 +59,8 @@ void main() {
 
 
     // gl_FragColor = vec4(newA, newB, 0.0, 1);
-    gl_FragColor = vec4(1., 0., 0.0, 1);
+    // gl_FragColor = vec4(1., 0., 0.0, 1);
+    gl_FragColor = vec4(ab.r + 0.01, ab.g, 1., 1);
     // gl_FragColor = vec4(ab.r, ab.g, 0.0, 1);
     // gl_FragColor = vec4(vUv.x, vUv.y,0., 1);
 }
