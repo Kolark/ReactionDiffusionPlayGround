@@ -6,61 +6,51 @@ uniform float diffusionB;
 uniform float f;
 uniform float k;
 uniform float delta;
-uniform vec3 test;
+varying vec2 vUv;
 
-float GetLaplacianR(sampler2D tex,vec2 pos, vec2 res){
-        float laplacian =   0.2*texture(tex, (pos-vec2(0., 1.))/res.xy).r +
-                            0.2*texture(tex, (pos-vec2(0., -1.))/res.xy).r +
-            			 	0.2*texture(tex, (pos+vec2(1., 0.))/res.xy).r +
-            			 	0.2*texture(tex, (pos+vec2(-1., 0.))/res.xy).r +
-                            
-                            0.05*texture(tex, (pos-vec2(1., 1.))/res.xy).r +
-            			 	0.05*texture(tex, (pos+vec2(1., -1.))/res.xy).r +
-            			 	0.05*texture(tex, (pos+vec2(-1., 1.))/res.xy).r +
-                            0.05*texture(tex, (pos-vec2(-1., -1.))/res.xy).r +
-                            
-                            -1.*texture(tex, pos/res.xy).r;
-                            
-                            return laplacian;
-}
 
-float GetLaplacianG(sampler2D tex,vec2 pos, vec2 res){
-        float laplacian =   0.2*texture(tex, (pos-vec2(0., 1.))/res.xy).g +
-                            0.2*texture(tex, (pos-vec2(0., -1.))/res.xy).g +
-            			 	0.2*texture(tex, (pos+vec2(1., 0.))/res.xy).g +
-            			 	0.2*texture(tex, (pos+vec2(-1., 0.))/res.xy).g +
+vec2 GetLaplacian(sampler2D tex){
+    vec2 texel = 1./res;
+    float step_x = 1.0/res.x;
+    float step_y = 1.0/res.y;
+        vec2 laplacian =    0.2 * texture(tex, vUv + vec2(-step_x, 0.0)).rg +
+                            0.2 * texture(tex, vUv + vec2(step_x, 0.0)).rg +
+            			 	0.2 * texture(tex, vUv + vec2(0.0, step_y)).rg +
+            			 	0.2 * texture(tex, vUv + vec2(0.0, -step_y)).rg +
                             
-                            0.05*texture(tex, (pos-vec2(1., 1.))/res.xy).g +
-            			 	0.05*texture(tex, (pos+vec2(1., -1.))/res.xy).g +
-            			 	0.05*texture(tex, (pos+vec2(-1., 1.))/res.xy).g +
-                            0.05*texture(tex, (pos-vec2(-1., -1.))/res.xy).g +
+                            0.05 * texture(tex, vUv + vec2(step_x, step_y)).rg +
+            			 	0.05 * texture(tex, vUv + vec2(-step_x, step_y)).rg +
+            			 	0.05 * texture(tex, vUv + vec2(step_x, -step_y)).rg +
+                            0.05 * texture(tex, vUv + vec2(-step_x, -step_y)).rg +
                             
-                            -1.*texture(tex, pos/res.xy).g;
+                            -1.*texture(tex, vUv).rg;
                             
                             return laplacian;
 }
 
 void main() {
-    vec2 vUv = gl_FragCoord.xy / res;
+    if(time < 0.0006) {
+        float t = step(distance(vUv,vec2(0.5)),0.2);
+        gl_FragColor = vec4(t, 0.25f, 0.0, 1);
+        return;
+    }
+
+
     vec4 col = texture(bufferTex,vUv);
 
     vec2 ab = col.rg;
+    float c = col.b;
+    float reaction = ab.r * ab.g * ab.g;
 
-    float reaction = ab.r*ab.g*ab.g;
+    vec2 laplacian = GetLaplacian(bufferTex);
+    float feed = f * (1.0 - ab.r);
+    float newA = ab.r + ((diffusionA * laplacian.r) - reaction + feed)*delta;
+    //float newA = ab.r + diffusionA * laplacian.r;
 
-    float laplacianA = GetLaplacianR(bufferTex, gl_FragCoord.xy, res);
-    float feed = f*(1.-ab.r);
-    float newA = ab.r + (diffusionA * laplacianA - reaction + feed)*delta;
-
-
-    float laplacianB = GetLaplacianG(bufferTex, gl_FragCoord.xy, res);
     float kill = (f+k)*ab.g;
-    float newB = ab.g + (diffusionB * laplacianB + reaction - kill)*delta;
-
-
-    // gl_FragColor = vec4(newA, newB, 0.0, 1);
-    // gl_FragColor = vec4(1., 0., 0.0, 1);
-    gl_FragColor = vec4(ab.r + 0.01, ab.g, 1., 1);
-    // gl_FragColor = vec4(ab.r, ab.g, 0.0, 1);
-    // gl_FragColor = vec4(vUv.x, vUv.y,0., 1);
+    float newB = ab.g + ((diffusionB * laplacian.g) + reaction - kill)*delta;
+    //float newB = ab.g + diffusionB * laplacian.g;
+   
+    gl_FragColor = vec4(newA, newB, c, 1.);
+    // gl_FragColor = vec4(vUv.x, vUv.y, 0.1, 1.);
 }

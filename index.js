@@ -13,7 +13,7 @@ export default class Sketch{
         this.scene = new THREE.Scene();
         this.width = this.container.offsetWidth;
         this.height = this.container.offsetHeight;
-
+        this.mLastTime = 0;
 
         //Camera
         this.camera = new THREE.OrthographicCamera( this.width / - 2, this.width / 2, this.height / 2, this.height / - 2, 1, 1000 );
@@ -37,7 +37,7 @@ export default class Sketch{
 
         this.addBuffers();
         this.addObjects();
-        this.render();
+        this.render(0);
     }
 
     setupResize(){
@@ -69,30 +69,33 @@ export default class Sketch{
     addBuffers(){
 
         this.bufferScene = new THREE.Scene();
-        this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter});
-        this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, { minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter});
+        this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, {minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+            type: THREE.FloatType});
+        this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, {minFilter: THREE.LinearFilter,
+            magFilter: THREE.LinearFilter,
+            format: THREE.RGBAFormat,
+            type: THREE.FloatType});
+        // this.textureB.texture = new THREE.TextureLoader().load("initState.jpg");
 
-        // this.textureA.texture = new THREE.TextureLoader().load("initState.jpg");
+
         this.materialA = new THREE.ShaderMaterial( {
             uniforms: {
                 bufferTex: { type: "t", value: this.textureA.texture },
                 // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value: 0},
-                diffusionA: {type:"f",value: 1},
-                diffusionB: {type:"f",value: .5},
+                diffusionA: {type:"f",value: 1.},
+                diffusionB: {type:"f",value: 0.4},
                 f: {type:"f",value: 0.055},
                 k: {type:"f",value: 0.062},
-                delta: {type:"f",value: 1},
-                test: {type:"f",value: new THREE.Vector3(0,0,0)}
+                delta: {type:"f",value: 1.}
             }, 
-            fragmentShader: fshader
+            fragmentShader: fshader,
+            vertexShader:vertex
         });
-        // uniform float diffusionA;
-        // uniform float diffusionB;
-        // uniform float f;
-        // uniform float k;
-        // uniform float delta;
+        
         this.materialB = new THREE.ShaderMaterial( {
             uniforms: {
                 bufferTex: { type: "t", value: this.textureB.texture },
@@ -101,7 +104,8 @@ export default class Sketch{
                 time: {type:"f",value:0},
                 test2: {type:"f",value: new THREE.Vector3(0,1,0)}
             }, 
-            fragmentShader: gshader
+            fragmentShader: gshader,
+            vertexShader:vertex
         } );
 
         this.geometry = new THREE.PlaneGeometry(this.width, this.height, 10, 10 );
@@ -113,18 +117,24 @@ export default class Sketch{
         this.scene.add( this.mesh );
     }
 
-    render(){
+    render(time){
 
+        // let dt = (time - this.mLastTime)/20.0;
+        // if(dt > 0.8 || dt<=0)
+        //     dt = 0.8;
+        // this.mLastTime = time;
+
+        // this.materialA.uniforms.delta.value = dt;
         requestAnimationFrame(this.render.bind(this));
-        // this.renderer.render(this.scene, this.camera);
-        // this.materialA.uniforms.bufferTex.value = this.textureB.texture;
-        // let temp 
 
 
-        // this.materialB.uniforms.test2.value = new THREE.Vector3(1,0,0);
         this.time += 0.0005;
         this.materialA.uniforms.time.value = this.time;
         this.materialB.uniforms.time.value = this.time;
+        
+        
+        for(let i=0; i<10; i++)
+        {
         //Draw buffer scene with materialA and grayscott shader to texture B
         this.renderer.setRenderTarget(this.textureB);
         this.renderer.clear();
@@ -136,13 +146,12 @@ export default class Sketch{
         this.textureB = t;
         this.materialA.uniforms.bufferTex.value = this.textureA.texture;
         this.materialB.uniforms.bufferTex.value = this.textureB.texture;
-        
+    }
 
         //Draw to screen
         this.renderer.setRenderTarget(null);
-        this.renderer.clear();
         this.renderer.render( this.scene, this.camera );
-        
+
 
 
     }
