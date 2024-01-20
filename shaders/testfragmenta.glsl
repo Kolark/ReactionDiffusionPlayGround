@@ -40,7 +40,8 @@ void main() {
 
     vec2 ab = col.rg;
     float c = col.b;
-    float reaction = ab.r * ab.g * ab.g;
+    float p = (vUv.x - 0.5)*0.0;
+    float reaction = ab.r * ab.g * ab.g * (1. + p);
 
     vec2 laplacian = GetLaplacian(bufferTex);
     float feed = f * (1.0 - ab.r);
