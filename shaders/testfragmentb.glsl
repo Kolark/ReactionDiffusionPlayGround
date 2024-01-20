@@ -6,5 +6,5 @@ varying vec2 vUv;
 void main() {
     vec2 vUv = gl_FragCoord.xy / res;
     vec4 col = texture(bufferTex, vUv);
-    gl_FragColor = vec4(col.r,col.r, col.r, 1.);
+    gl_FragColor = vec4(col.r,vUv.y, vUv.x, 1.);
 }

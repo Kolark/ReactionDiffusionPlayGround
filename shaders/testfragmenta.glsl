@@ -31,7 +31,7 @@ vec2 GetLaplacian(sampler2D tex){
 void main() {
     if(time < 0.0006) {
         float t = step(distance(vUv,vec2(0.5)),0.2);
-        gl_FragColor = vec4(t, 0.25f, 0.0, 1);
+        gl_FragColor = vec4(1., t, 0.0, 1);
         return;
     }
 

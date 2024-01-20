@@ -87,7 +87,7 @@ export default class Sketch{
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value: 0},
                 diffusionA: {type:"f",value: 1.},
-                diffusionB: {type:"f",value: 0.4},
+                diffusionB: {type:"f",value: .5},
                 f: {type:"f",value: 0.055},
                 k: {type:"f",value: 0.062},
                 delta: {type:"f",value: 1.}
@@ -133,7 +133,7 @@ export default class Sketch{
         this.materialB.uniforms.time.value = this.time;
         
         
-        for(let i=0; i<10; i++)
+        for(let i=0; i<100; i++)
         {
         //Draw buffer scene with materialA and grayscott shader to texture B
         this.renderer.setRenderTarget(this.textureB);
