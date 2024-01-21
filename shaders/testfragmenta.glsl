@@ -33,6 +33,13 @@ float map(float value, float min1, float max1, float min2, float max2) {
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
+mat2 rotate2d(float _angle){
+    return mat2(cos(_angle),-sin(_angle),
+                sin(_angle),cos(_angle));
+}
+
+#define PI 3.14159265359
+
 void main() {
     if(time < 0.0006) {
         float t = step(distance(vUv,vec2(0.5)),0.5);

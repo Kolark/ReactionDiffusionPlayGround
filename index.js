@@ -83,7 +83,7 @@ export default class Sketch{
         this.materialA = new THREE.ShaderMaterial( {
             uniforms: {
                 bufferTex: { type: "t", value: this.textureA.texture },
-                feedTex: { type: "t", value: new THREE.TextureLoader().load("img2.jpg") },
+                feedTex: { type: "t", value: new THREE.TextureLoader().load("img3.jpg") },
                 // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value: 0},

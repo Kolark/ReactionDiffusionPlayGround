@@ -37,10 +37,14 @@ float map(float value, float min1, float max1, float min2, float max2) {
 void main() {
     vec2 vUv = gl_FragCoord.xy / res;
     vec4 col = texture(bufferTex, vUv);
+    float step_x = 1.0/res.x;
+    float step_y = 1.0/res.y;
+
+    vec4 col2 = texture(bufferTex, vUv + vec2(2.*sin(time*100.)*step_x, 2.*cos(time*100.)*step_y));
 
     vec3 hsb = rgb2hsb(col.gbr);
-    hsb.b = 1.;
+    hsb.g = col2.r;
+    hsb.b = step(1. - col2.r, 1.);
     vec3 rgb = hsb2rgb(hsb);
-
-    gl_FragColor = vec4(rgb, 1.);
+    gl_FragColor = vec4(rgb.r,rgb.g,rgb.b, 1.);
 }
