@@ -40,7 +40,8 @@ void main() {
     float step_x = 1.0/res.x;
     float step_y = 1.0/res.y;
 
-    vec4 col2 = texture(bufferTex, vUv + vec2(2.*sin(time*100.)*step_x, 2.*cos(time*100.)*step_y));
+    vec2 offset = vec2(2.*sin(time*100.)*step_x, 2.*cos(time*100.)*step_y);
+    vec4 col2 = texture(bufferTex, vUv);
 
     vec3 hsb = rgb2hsb(col.gbr);
     hsb.g = col2.r;

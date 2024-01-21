@@ -89,8 +89,8 @@ export default class Sketch{
                 time: {type:"f",value: 0},
                 diffusionA: {type:"f",value: 1.},
                 diffusionB: {type:"f",value: .5},
-                f: {type:"f",value: 0.06100},
-                k: {type:"f",value: 0.06264},
+                fvalues: {type:"v2",value: new THREE.Vector2(0.03451,0.06100)},
+                kvalues: {type:"v2",value: new THREE.Vector2(0.06070,0.06264)},
                 delta: {type:"f",value: 1.}
             }, 
             fragmentShader: fshader,

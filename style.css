@@ -4,11 +4,12 @@ main {
     width: 100%;
     height: 100vh;
     display: flex;
-    justify-content: center;
+    justify-content: left;
     align-items: center;
 }
 
 .canvasContainer {
-    height: 100%;
-    width: 100%;
+    height: 1497px;
+    width: 897px;
+    
 }
