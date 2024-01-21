@@ -38,9 +38,9 @@ void main() {
     vec2 vUv = gl_FragCoord.xy / res;
     vec4 col = texture(bufferTex, vUv);
 
-    vec3 hsb = rgb2hsb(vec3(1.,1.,1.));
-    hsb.r = vUv.x;
-    vec3 rgb = hsb2rgb(vec3(map(col.r,0.,1.,0.3,0.7),1.0,1.));
+    vec3 hsb = rgb2hsb(col.gbr);
+    hsb.b = 1.;
+    vec3 rgb = hsb2rgb(hsb);
 
     gl_FragColor = vec4(rgb, 1.);
 }
