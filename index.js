@@ -6,6 +6,9 @@ import gshader from './shaders/testfragmentb.glsl'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+import presets from "./presets.js";
+
+
 export default class Sketch{
     constructor(options){
         this.time = 0;
@@ -14,7 +17,7 @@ export default class Sketch{
         this.width = this.container.offsetWidth;
         this.height = this.container.offsetHeight;
         this.mLastTime = 0;
-
+        this.preset = presets.the_fool;
         //Camera
         this.camera = new THREE.OrthographicCamera( this.width / - 2, this.width / 2, this.height / 2, this.height / - 2, 1, 1000 );
         this.camera.position.z = 2;
@@ -36,7 +39,6 @@ export default class Sketch{
         this.setupResize();
 
         this.addBuffers();
-        this.addObjects();
         this.render(0);
     }
 
@@ -48,22 +50,6 @@ export default class Sketch{
         this.width = this.container.offsetWidth;
         this.height = this.container.offsetHeight;
         this.renderer.setSize( this.width,this.height );
-    }
-
-    addObjects(){
-        
-        // this.geometry = new THREE.SphereGeometry(5,10,10);
-        // this.material = new THREE.ShaderMaterial({
-        //     uniforms:{
-        //         time: {value:0},
-        //     },
-        //     side: THREE.DoubleSide,
-        //     fragmentShader: fragment,
-        //     vertexShader: vertex,
-        //     // wireframe: true
-        // });
-        // this.mesh = new THREE.Mesh( this.geometry, this.material);
-        // this.scene.add( this.mesh );
     }
 
     addBuffers(){
@@ -83,14 +69,13 @@ export default class Sketch{
         this.materialA = new THREE.ShaderMaterial( {
             uniforms: {
                 bufferTex: { type: "t", value: this.textureA.texture },
-                feedTex: { type: "t", value: new THREE.TextureLoader().load("img3.jpg") },
-                // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
+                feedTex: { type: "t", value: new THREE.TextureLoader().load(this.preset.feedMask) },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value: 0},
-                diffusionA: {type:"f",value: 1.},
-                diffusionB: {type:"f",value: .5},
-                fvalues: {type:"v2",value: new THREE.Vector2(0.03451,0.06100)},
-                kvalues: {type:"v2",value: new THREE.Vector2(0.06070,0.06264)},
+                diffusionA: {type:"f",value: this.preset.dA},
+                diffusionB: {type:"f",value: this.preset.dB},
+                fvalues: {type:"v2",value: this.preset.f},
+                kvalues: {type:"v2",value: this.preset.k},
                 delta: {type:"f",value: 1.}
             }, 
             fragmentShader: fshader,
@@ -100,10 +85,17 @@ export default class Sketch{
         this.materialB = new THREE.ShaderMaterial( {
             uniforms: {
                 bufferTex: { type: "t", value: this.textureB.texture },
-                // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
+                colorMask: { type: "t", value: new THREE.TextureLoader().load(this.preset.colorMask) },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value:0},
-                test2: {type:"f",value: new THREE.Vector3(0,1,0)}
+                a1: {type:'v3', value: this.preset.a1},
+                b1: {type:'v3', value: this.preset.b1},
+                c1: {type:'v3', value: this.preset.c1},
+                d1: {type:'v3', value: this.preset.d1},
+                a2: {type:'v3', value: this.preset.a2},
+                b2: {type:'v3', value: this.preset.b2},
+                c2: {type:'v3', value: this.preset.c2},
+                d2: {type:'v3', value: this.preset.d2},
             }, 
             fragmentShader: gshader,
             vertexShader:vertex

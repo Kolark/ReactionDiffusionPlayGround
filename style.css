@@ -11,5 +11,6 @@ main {
 .canvasContainer {
     height: 1497px;
     width: 897px;
-    
+    /* height: 100%;
+    width: 100%; */
 }

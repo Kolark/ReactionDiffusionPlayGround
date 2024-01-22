@@ -1,19 +1,22 @@
 uniform sampler2D bufferTex; 
 uniform sampler2D feedTex; 
+
 uniform vec2 res;
 uniform float time;
 uniform float diffusionA;
 uniform float diffusionB;
+
 uniform vec2 fvalues;
 uniform vec2 kvalues;
+
 uniform float delta;
 varying vec2 vUv;
 
 
 vec2 GetLaplacian(sampler2D tex){
     vec2 texel = 1./res;
-    float step_x = 1.0/res.x;
-    float step_y = 1.0/res.y;
+    float step_x = 1./res.x;
+    float step_y = 1./res.y;
         vec2 laplacian =    0.2 * texture(tex, vUv + vec2(-step_x, 0.0)).rg +
                             0.2 * texture(tex, vUv + vec2(step_x, 0.0)).rg +
             			 	0.2 * texture(tex, vUv + vec2(0.0, step_y)).rg +
@@ -52,14 +55,14 @@ void main() {
 
     vec2 ab = col.rg;
     float c = col.b;
+    vec3 mask = texture(feedTex, vUv).rgb;
     float p = (vUv.x - 0.5)*sin(time*50.)*0.;
     float reaction = ab.r * ab.g * ab.g * (1. + p);
 
     vec2 laplacian = GetLaplacian(bufferTex);
 
-    float mask = texture(feedTex, vUv).r;
-    float f = map(mask, 0., 1., fvalues.x, fvalues.y);
-    float k = map(mask, 0., 1., kvalues.x, kvalues.y);
+    float f = map(mask.r, 0., 1., fvalues.x, fvalues.y);
+    float k = map(mask.g, 0., 1., kvalues.x, kvalues.y);
 
     float feed = (f) * (1.0 - ab.r);
     float newA = ab.r + ((diffusionA * laplacian.r) - reaction + feed)*delta;
