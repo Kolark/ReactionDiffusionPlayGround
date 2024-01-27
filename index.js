@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import fragment from './shaders/fragment.glsl'
 import vertex from './shaders/vertex.glsl'
 import fshader from './shaders/testfragmenta.glsl'
 import gshader from './shaders/testfragmentb.glsl'
@@ -13,8 +12,7 @@ export default class Sketch{
         this.scene = new THREE.Scene();
         this.width = this.container.offsetWidth;
         this.height = this.container.offsetHeight;
-        this.mLastTime = 0;
-
+        this.speed = 50;
         //Camera
         this.camera = new THREE.OrthographicCamera( this.width / - 2, this.width / 2, this.height / 2, this.height / - 2, 1, 1000 );
         this.camera.position.z = 2;
@@ -30,13 +28,9 @@ export default class Sketch{
         this.renderer.setClearColor(0x1, 1); 
         this.container.appendChild( this.renderer.domElement );
 
-        // this.controls = new OrbitControls( this.camera, this.renderer.domElement );
-
         this.resize()
         this.setupResize();
-
         this.addBuffers();
-        this.addObjects();
         this.render(0);
     }
 
@@ -50,22 +44,6 @@ export default class Sketch{
         this.renderer.setSize( this.width,this.height );
     }
 
-    addObjects(){
-        
-        // this.geometry = new THREE.SphereGeometry(5,10,10);
-        // this.material = new THREE.ShaderMaterial({
-        //     uniforms:{
-        //         time: {value:0},
-        //     },
-        //     side: THREE.DoubleSide,
-        //     fragmentShader: fragment,
-        //     vertexShader: vertex,
-        //     // wireframe: true
-        // });
-        // this.mesh = new THREE.Mesh( this.geometry, this.material);
-        // this.scene.add( this.mesh );
-    }
-
     addBuffers(){
 
         this.bufferScene = new THREE.Scene();
@@ -77,8 +55,6 @@ export default class Sketch{
             magFilter: THREE.LinearFilter,
             format: THREE.RGBAFormat,
             type: THREE.FloatType});
-        // this.textureB.texture = new THREE.TextureLoader().load("initState.jpg");
-
 
         this.materialA = new THREE.ShaderMaterial( {
             uniforms: {
@@ -91,7 +67,8 @@ export default class Sketch{
                 diffusionB: {type:"f",value: .5},
                 f: {type:"f",value: 0.06100},
                 k: {type:"f",value: 0.06264},
-                delta: {type:"f",value: 1.}
+                delta: {type:"f",value: 1.},
+                fun: {type:"f",value: 1.}
             }, 
             fragmentShader: fshader,
             vertexShader:vertex
@@ -103,7 +80,10 @@ export default class Sketch{
                 // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
                 res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
                 time: {type:"f",value:0},
-                test2: {type:"f",value: new THREE.Vector3(0,1,0)}
+                a: {type:"v3",value: new THREE.Vector3(0,0,0)},
+                b: {type:"v3",value: new THREE.Vector3(0,0,0)},
+                c: {type:"v3",value: new THREE.Vector3(0,0,0)},
+                d: {type:"v3",value: new THREE.Vector3(0,0,0)},
             }, 
             fragmentShader: gshader,
             vertexShader:vertex
@@ -118,30 +98,30 @@ export default class Sketch{
         this.scene.add( this.mesh );
     }
 
+    SetA(r,g,b){ this.materialB.uniforms.a.value = new THREE.Vector3(r, g, b); }
+    SetB(r,g,b){ this.materialB.uniforms.b.value = new THREE.Vector3(r, g, b); }
+    SetC(r,g,b){ this.materialB.uniforms.c.value = new THREE.Vector3(r, g, b); }
+    SetD(r,g,b){ this.materialB.uniforms.d.value = new THREE.Vector3(r, g, b); }
+
+    reset(){
+        this.time = 0;
+        this.materialA.uniforms.time.value = this.time;
+        this.materialB.uniforms.time.value = this.time;
+    }
+
     render(time){
-
-        // let dt = (time - this.mLastTime)/20.0;
-        // if(dt > 0.8 || dt<=0)
-        //     dt = 0.8;
-        // this.mLastTime = time;
-
-        // this.materialA.uniforms.delta.value = dt;
         requestAnimationFrame(this.render.bind(this));
-
 
         this.time += 0.0005;
         this.materialA.uniforms.time.value = this.time;
         this.materialB.uniforms.time.value = this.time;
         
-        
-        for(let i=0; i<100; i++)
+        for(let i=0; i<this.speed; i++)
         {
-        //Draw buffer scene with materialA and grayscott shader to texture B
         this.renderer.setRenderTarget(this.textureB);
         this.renderer.clear();
         this.renderer.render(this.bufferScene, this.camera);
 
-        
         let t = this.textureA;
         this.textureA = this.textureB;
         this.textureB = t;
@@ -152,17 +132,6 @@ export default class Sketch{
         //Draw to screen
         this.renderer.setRenderTarget(null);
         this.renderer.render( this.scene, this.camera );
-
-
-
     }
 }
-
-new Sketch({
-    dom: document.getElementById('container')
-});
-
-
-
-
 

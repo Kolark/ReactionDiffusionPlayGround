@@ -7,13 +7,14 @@ uniform float diffusionB;
 uniform float f;
 uniform float k;
 uniform float delta;
+uniform float fun;
 varying vec2 vUv;
 
 
 vec2 GetLaplacian(sampler2D tex){
     vec2 texel = 1./res;
-    float step_x = 1.0/res.x;
-    float step_y = 1.0/res.y;
+    float step_x = fun/res.x;
+    float step_y = fun/res.y;
         vec2 laplacian =    0.2 * texture(tex, vUv + vec2(-step_x, 0.0)).rg +
                             0.2 * texture(tex, vUv + vec2(step_x, 0.0)).rg +
             			 	0.2 * texture(tex, vUv + vec2(0.0, step_y)).rg +
@@ -42,7 +43,9 @@ mat2 rotate2d(float _angle){
 
 void main() {
     if(time < 0.0006) {
-        float t = step(distance(vUv,vec2(0.5)),0.5);
+        
+        // float t = round((cos(vUv.x*20.)*sin(vUv.y*20.)+1.0)*0.5);
+        float t = step(distance(vUv,vec2(0.5)),0.05);
         gl_FragColor = vec4(1., t, 0.0, 1);
         return;
     }
@@ -56,25 +59,14 @@ void main() {
     float reaction = ab.r * ab.g * ab.g * (1. + p);
 
     vec2 laplacian = GetLaplacian(bufferTex);
-    // float feed = f * (1.0 - ab.r);
-
     float mask = texture(feedTex, vUv).r;
-
-    // float feed = (f) * (1.0 - ab.r);
-    float f = map(mask, 0., 1., 0.03451,0.06100);
-    float k = map(mask, 0., 1., 0.06070,0.06264);
-    // float f = 0.02637 ;
-    // float k = 0.05773 ;
+    float mm = distance(vUv,vec2(0.5))*2.141;
+    
     float feed = (f) * (1.0 - ab.r);
     float newA = ab.r + ((diffusionA * laplacian.r) - reaction + feed)*delta;
-    //float newA = ab.r + diffusionA * laplacian.r;
 
-    // float kill = (f+k)*ab.g;
     float kill = (f+k)*ab.g;
     float newB = ab.g + ((diffusionB * laplacian.g) + reaction - kill)*delta;
-    //float newB = ab.g + diffusionB * laplacian.g;
    
     gl_FragColor = vec4(newA, newB, c, 1.);
-    // gl_FragColor = vec4(vec3(mask), 1.);
-    // gl_FragColor = vec4(vUv.x, vUv.y, 0.1, 1.);
 }
