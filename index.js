@@ -1,137 +1,126 @@
-import * as THREE from 'three';
-import vertex from './shaders/vertex.glsl'
-import fshader from './shaders/testfragmenta.glsl'
-import gshader from './shaders/testfragmentb.glsl'
+import Sketch from './sketch.js';
+import ColorPicker from './colorPicker.js';
+import { Color } from 'three';
 
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+const dAValue  = document.getElementById("dAValue");
+const dASlider = document.getElementById("dASlider");
 
-export default class Sketch{
-    constructor(options){
-        this.time = 0;
-        this.container = options.dom;
-        this.scene = new THREE.Scene();
-        this.width = this.container.offsetWidth;
-        this.height = this.container.offsetHeight;
-        this.speed = 50;
-        //Camera
-        this.camera = new THREE.OrthographicCamera( this.width / - 2, this.width / 2, this.height / 2, this.height / - 2, 1, 1000 );
-        this.camera.position.z = 2;
+const dBValue  = document.getElementById("dBValue");
+const dBSlider = document.getElementById("dBSlider");
 
-        this.camera.fov = 2*Math.atan( (this.height/2)/600 )* (180/Math.PI);
+const fValue  = document.getElementById("fValue");
+const fSlider = document.getElementById("fSlider");
 
-        this.renderer = new THREE.WebGLRenderer( { 
-            antialias: true,
-            alpha: true
-        } );
+const kValue  = document.getElementById("kValue");
+const kSlider = document.getElementById("kSlider");
 
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-        this.renderer.setClearColor(0x1, 1); 
-        this.container.appendChild( this.renderer.domElement );
+const speedValue  = document.getElementById("speedValue");
+const speedSlider = document.getElementById("speedSlider");
 
-        this.resize()
-        this.setupResize();
-        this.addBuffers();
-        this.render(0);
-    }
+const funValue  = document.getElementById("funValue");
+const funSlider = document.getElementById("funSlider");
 
-    setupResize(){
-        window.addEventListener('resize',this.resize.bind(this));
-    }
+const ar = document.getElementById("ar");
+const ag = document.getElementById("ag");
+const ab = document.getElementById("ab");
 
-    resize(){
-        this.width = this.container.offsetWidth;
-        this.height = this.container.offsetHeight;
-        this.renderer.setSize( this.width,this.height );
-    }
+const br = document.getElementById("br");
+const bg = document.getElementById("bg");
+const bb = document.getElementById("bb");
 
-    addBuffers(){
+const cr = document.getElementById("cr");
+const cg = document.getElementById("cg");
+const cb = document.getElementById("cb");
 
-        this.bufferScene = new THREE.Scene();
-        this.textureA = new THREE.WebGLRenderTarget( this.width, this.height, {minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat,
-            type: THREE.FloatType});
-        this.textureB = new THREE.WebGLRenderTarget( this.width, this.height, {minFilter: THREE.LinearFilter,
-            magFilter: THREE.LinearFilter,
-            format: THREE.RGBAFormat,
-            type: THREE.FloatType});
+const dr = document.getElementById("dr");
+const dg = document.getElementById("dg");
+const db = document.getElementById("db");
 
-        this.materialA = new THREE.ShaderMaterial( {
-            uniforms: {
-                bufferTex: { type: "t", value: this.textureA.texture },
-                feedTex: { type: "t", value: new THREE.TextureLoader().load("img3.jpg") },
-                // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
-                res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
-                time: {type:"f",value: 0},
-                diffusionA: {type:"f",value: 1.},
-                diffusionB: {type:"f",value: .5},
-                f: {type:"f",value: 0.06100},
-                k: {type:"f",value: 0.06264},
-                delta: {type:"f",value: 1.},
-                fun: {type:"f",value: 1.}
-            }, 
-            fragmentShader: fshader,
-            vertexShader:vertex
-        });
-        
-        this.materialB = new THREE.ShaderMaterial( {
-            uniforms: {
-                bufferTex: { type: "t", value: this.textureB.texture },
-                // bufferTex: { type: "t", value: new THREE.TextureLoader().load("initState.jpg") },
-                res : {type: 'v2',value:new THREE.Vector2(this.width,this.height)},
-                time: {type:"f",value:0},
-                a: {type:"v3",value: new THREE.Vector3(0,0,0)},
-                b: {type:"v3",value: new THREE.Vector3(0,0,0)},
-                c: {type:"v3",value: new THREE.Vector3(0,0,0)},
-                d: {type:"v3",value: new THREE.Vector3(0,0,0)},
-            }, 
-            fragmentShader: gshader,
-            vertexShader:vertex
-        } );
+const regrowbtn = document.getElementById("regrow");
 
-        this.geometry = new THREE.PlaneGeometry(this.width, this.height, 10, 10 );
-        
-        this.bufferObject = new THREE.Mesh(this.geometry, this.materialA );
-        this.bufferScene.add(this.bufferObject);
-
-        this.mesh = new THREE.Mesh( this.geometry, this.materialB);
-        this.scene.add( this.mesh );
-    }
-
-    SetA(r,g,b){ this.materialB.uniforms.a.value = new THREE.Vector3(r, g, b); }
-    SetB(r,g,b){ this.materialB.uniforms.b.value = new THREE.Vector3(r, g, b); }
-    SetC(r,g,b){ this.materialB.uniforms.c.value = new THREE.Vector3(r, g, b); }
-    SetD(r,g,b){ this.materialB.uniforms.d.value = new THREE.Vector3(r, g, b); }
-
-    reset(){
-        this.time = 0;
-        this.materialA.uniforms.time.value = this.time;
-        this.materialB.uniforms.time.value = this.time;
-    }
-
-    render(time){
-        requestAnimationFrame(this.render.bind(this));
-
-        this.time += 0.0005;
-        this.materialA.uniforms.time.value = this.time;
-        this.materialB.uniforms.time.value = this.time;
-        
-        for(let i=0; i<this.speed; i++)
-        {
-        this.renderer.setRenderTarget(this.textureB);
-        this.renderer.clear();
-        this.renderer.render(this.bufferScene, this.camera);
-
-        let t = this.textureA;
-        this.textureA = this.textureB;
-        this.textureB = t;
-        this.materialA.uniforms.bufferTex.value = this.textureA.texture;
-        this.materialB.uniforms.bufferTex.value = this.textureB.texture;
-    }
-
-        //Draw to screen
-        this.renderer.setRenderTarget(null);
-        this.renderer.render( this.scene, this.camera );
-    }
+function SetValue(element, value){
+    element.innerText = Math.round(value*10000)/10000; 
 }
 
+const sk = new Sketch({
+    dom: document.getElementById('container')
+});
+const colorPicker = new ColorPicker({
+    dom: document.getElementById('colorPickerCanvas')
+});
+
+
+function SetA(){
+    colorPicker.SetA(ar.value, ag.value, ab.value);
+    sk.         SetA(ar.value, ag.value, ab.value);
+}
+
+function SetB(){
+    colorPicker.SetB(br.value, bg.value, bb.value);
+    sk.         SetB(br.value, bg.value, bb.value);
+}
+
+function SetC(){
+    colorPicker.SetC(cr.value, cg.value, cb.value);
+    sk.         SetC(cr.value, cg.value, cb.value);
+}
+
+function SetD(){
+    colorPicker.SetD(dr.value, dg.value, db.value);
+    sk.         SetD(dr.value, dg.value, db.value);
+}
+
+SetValue(dAValue, dASlider.value);
+SetValue(dBValue, dBSlider.value);
+SetValue(fValue, fSlider.value);
+SetValue(kValue, kSlider.value);
+SetValue(speedValue, speedSlider.value);
+SetValue(funValue, funSlider.value);
+SetA();
+SetB();
+SetC();
+SetD();
+
+dASlider.addEventListener('input', e => {
+    SetValue(dAValue, dASlider.value)
+    sk.materialA.uniforms.diffusionA.value = dASlider.value;
+});
+dBSlider.addEventListener('input', e => {
+    SetValue(dBValue, dBSlider.value)
+    sk.materialA.uniforms.diffusionB.value = dBSlider.value;
+});
+fSlider.addEventListener('input', e =>  {
+    SetValue(fValue, fSlider.value)
+    sk.materialA.uniforms.f.value = fSlider.value;
+});
+kSlider.addEventListener('input', e =>  {
+    SetValue(kValue, kSlider.value)
+    sk.materialA.uniforms.k.value = kSlider.value;
+});
+speedSlider.addEventListener('input', e =>  {
+    SetValue(speedValue, speedSlider.value)
+    sk.speed = speedSlider.value;
+});
+funSlider.addEventListener('input', e =>  {
+    SetValue(funValue, funSlider.value)
+    sk.materialA.uniforms.fun.value = funSlider.value; 
+});
+
+regrowbtn.addEventListener('click', e => {sk.reset()});
+
+ar.addEventListener('input', e => {SetA()});
+ag.addEventListener('input', e => {SetA()});
+ab.addEventListener('input', e => {SetA()});
+br.addEventListener('input', e => {SetB()});
+bg.addEventListener('input', e => {SetB()});
+bb.addEventListener('input', e => {SetB()});
+cr.addEventListener('input', e => {SetC()});
+cg.addEventListener('input', e => {SetC()});
+cb.addEventListener('input', e => {SetC()});
+dr.addEventListener('input', e => {SetD()});
+dg.addEventListener('input', e => {SetD()});
+db.addEventListener('input', e => {SetD()});
+
+
+//Add speed slider too
+//Regrow

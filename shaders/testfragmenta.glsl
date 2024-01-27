@@ -1,5 +1,4 @@
 uniform sampler2D bufferTex; 
-uniform sampler2D feedTex; 
 uniform vec2 res;
 uniform float time;
 uniform float diffusionA;
@@ -59,7 +58,7 @@ void main() {
     float reaction = ab.r * ab.g * ab.g * (1. + p);
 
     vec2 laplacian = GetLaplacian(bufferTex);
-    float mask = texture(feedTex, vUv).r;
+
     float mm = distance(vUv,vec2(0.5))*2.141;
     
     float feed = (f) * (1.0 - ab.r);
